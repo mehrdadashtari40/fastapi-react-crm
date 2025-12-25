@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"  # Expose database on localhost:5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persist data on host
+      - postgres_data:/var/lib/postgresql/data  # Persist data using a named volume (CORRECTED)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U yacrm_user -d yacrm_local"]
       interval: 10s
@@ -37,4 +37,4 @@ services:
       - .:/app  # Mount current directory for live code updates (optional, but useful for development)
 
 volumes:
-  postgres_data  # Named volume for persistent data
+  postgres_data: # Define the named volume (CORRECTED: now a mapping)
