@@ -1,0 +1,40 @@
+# backend/docker-compose.yml
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16  # Use a specific version for consistency
+    container_name: yacrm_db  # Name your container
+    environment:
+      POSTGRES_DB: yacrm_local      # Database name
+      POSTGRES_USER: yacrm_user     # Database user
+      POSTGRES_PASSWORD: yacrm_pass # Database password (use a strong one in production)
+    ports:
+      - "5432:5432"  # Expose database on localhost:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist data on host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yacrm_user -d yacrm_local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  app:
+    build: .  # Build from the current directory (where Dockerfile is)
+    container_name: yacrm_app
+    ports:
+      - "8000:8000"  # Expose FastAPI on localhost:8000
+    environment:
+      - DATABASE_URL=postgresql://yacrm_user:yacrm_pass@db:5432/yacrm_local
+      - SECRET_KEY=your-local-dev-secret-key-change-me  # Change this!
+      - ENV=development
+    depends_on:
+      db:
+        condition: service_healthy  # Wait for DB to be ready
+    volumes:
+      - .:/app  # Mount current directory for live code updates (optional, but useful for development)
+
+volumes:
+  postgres_data  # Named volume for persistent data
